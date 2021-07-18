@@ -1,0 +1,40 @@
+format of resource files for d.o. games:
+
+offset	desc
+0	SM2MPX10, file format identifier (8 bytes)
+8-9	number of files in archive (lo, hi)
+a-b	? (maybe extension of the previous field?)
+c-f	offset where the file header ends
+10-1b	name of current archive file, it seems
+1c-1f	offset where directory starts, i guess (except that some files have 0 in
+	this field)
+20-33	directory entry 1 (each entry takes 20 bytes)
+	12 bytes: filename
+	4 bytes: offset to start of file
+	4 bytes: length of file
+34-47	directory entry 2
+...	etc
+
+start address for files are always aligned to 16 bytes
+-------------------------------------------------------------------------------
+format of isf files (script)
+
+id (variable length): name of game
+YUKI for yukizakura
+YUKITRY for yukizakura trial
+
+offsets after id:
+0-3	unknown
+4-5	file format thing
+	95, 97: unencrypted
+
+binary format for script
+
+start.isf seems to be encrypted in most retail versions
+-------------------------------------------------------------------------------
+the game always gets files from the resource files, never from loose files
+-------------------------------------------------------------------------------
+material for research (stuff i own):
+19 games in jp by d.o. (premium archives x2, crescendo, another copy of snow sakura)
+snow sakura, family project, kana imouto, kana okaeri, crescendo (english)
+trial versions: snow sakura, senpai ga fiancee!?, sumeragi no miko-tachi, kuro no toshokan
