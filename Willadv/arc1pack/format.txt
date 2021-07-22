@@ -1,0 +1,22 @@
+file format:
+
+offset	length	content
+0	4	number of file type headers (little endian)
+4	0xc	file type header 1
+10	0xc	file type header 2 (if it exists)
+
+
+file type header format (length 0xc)
+offset	length
+0	4	null-terminated file type (WSC, PNG, OGG, MSK, TBL, WIP, ANM)
+		in alphabetical order i guess
+4	4	number of files of that type
+8	4	offset in archive file to start of directory header
+
+directory header entry (length 0x15)
+offset	length
+0	0xd	null-terminated filename
+0xd	4	filelength
+0x11	4	offset in archive file to start of file
+
+the file contents are byte-rotated left by 2 ((b<<2)|(b>>6))
