@@ -215,7 +215,6 @@ void pack(char *dest) {
 		findfirst(".",&t);
 #endif
 		do {
-			printf("%s %s\n",t.s,ext[i]);
 			if(t.dir==0 && equalext(t.s,ext[i])) {
 				printf("read file %s\n",t.s);
 				/* write filename (max 12 chars) */
@@ -246,6 +245,7 @@ void pack(char *dest) {
 	if(fwrite(buf,1,resstart,f)!=resstart) error("file write error");
 	if(fclose(f)) error("error closing file for writing");
 	free(buf);
+	puts("done");
 }
 
 int main(int argc,char **argv) {
