@@ -1,5 +1,7 @@
 packers/unpackers for visual novel file formats
 
+AdvHD		AdvHD
+		arcpack: pack archive file
 BGI		bgi/ethornell
 		script decode/encode
 CatSystem2	catsystem2
