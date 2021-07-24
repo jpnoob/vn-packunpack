@@ -1,7 +1,8 @@
 packers/unpackers for visual novel file formats
 
 AdvHD		AdvHD
-		arcpack: pack archive file
+		arcpack: pack .arc files
+		ahdprc2: encode script files from interstellar focus
 BGI		bgi/ethornell
 		script decode/encode
 CatSystem2	catsystem2
