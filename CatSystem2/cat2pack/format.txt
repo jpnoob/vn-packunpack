@@ -1,0 +1,13 @@
+file format
+
+offset	length	contents
+0	4	KIF\0 (file id)
+4	4	number of files (little endian)
+8		start of dir entries
+8+(0x48*number of files)	the files
+
+dir entry
+offset
+0	0x40	filename
+0x40	4	offset in archive file to start of file
+0x44	4	file length
