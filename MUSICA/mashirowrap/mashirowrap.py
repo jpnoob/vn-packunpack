@@ -30,7 +30,7 @@ def wrap(path):
 				m=l[4].split('\\n')
 				for n in m:
 					if linelength(n)>opt_linelen:
-						print("line "+str(lineno)+" is long ["+n.rstrip('\n\r')+"]")
+						print("line "+str(lineno)+" is long ["+n.rstrip('\n\r').replace('\u3000',' ')+"]")
 			lineno+=1
 
 sys.argv=sys.argv[1:]
