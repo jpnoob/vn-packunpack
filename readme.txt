@@ -4,7 +4,7 @@ AdvHD		AdvHD
 		arcpack: pack .arc files
 		ahdprc2: decode/encode script files from interstellar focus
 BGI		bgi/ethornell
-		script decode/encode (newer games with v1.72)
+		script decode/encode
 CatSystem2	catsystem2
 		cat2pack: pack .int files (unencrypted)
 DO		d.o.

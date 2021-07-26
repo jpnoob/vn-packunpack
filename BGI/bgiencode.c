@@ -9,17 +9,11 @@
    zero in the middle of a string (for example as the second byte of a two-byte
    character). this program can break horribly if that's possible!
 
-   TODO add support for encoding incomplete script files (and not touching
-   stuff in the binary that's not in the script)
-
    v1.0: initial release
-   v1.1: added support for format 0x10 (daitoshokan trial). in particular,
-         the program should support for encoding of incomplete text files
-         (not tested yet).
-         though the program is currently bugged, it doesn't find all strings
-         in daitoshokan. fortunately, i didn't break the 0x01 format.
-         use bgi_script_tools (tlwiki.org) for older formats instead.
-         it also doesn't work on main from hajirabu promo, so i'd like to fix it
+   v1.1: added support for format 0x10 (daitoshokan trial). it should also be
+         more robust at handling command strings in new games (like main in
+         hajirabu promo). as a byproduct, encoding of incomplete scripts is
+         supported
 */
 
 #include <stdio.h>
@@ -28,7 +22,7 @@
 #include <string.h>
 
 void usage() {
-	fputs("bgiencode v1.1- by me in 2021\n\n",stderr);
+	fputs("bgiencode v1.1 by me in 2021\n\n",stderr);
 	fputs("usage: bgiencode decoded-script-file\n\n",stderr);
 	fputs("kind of assumes that the input file has .txt extension\n",stderr);
 	fputs("uses existing encoded file without extension (whether it was .txt or not)\n",stderr);
@@ -149,8 +143,18 @@ void encode(char *in) {
 	// (take minimum of all actual text pointers)
 	uint32_t ptr=offs+8;
 	uint32_t earlieststring=0xffffffff;
+	uint32_t fix_earlieststring=0xffffffff; // attempted bugfix by skipping
 	while(ptr<earlieststring) {
-		if(isstrcode(getuint32(file+ptr))) { // next dword is pointer to string
+		// only accept 0x03 pointer here, skip over command strings
+		int ptrbak=ptr;
+		if(getuint32(file+ptr)==0x03) { // next dword is pointer to string
+			ptr+=4;
+			uint32_t str=getuint32(file+ptr)+offs;
+			// only accept strings with pointer > strptr
+			if(str>=strptr && fix_earlieststring>str && str>ptr) fix_earlieststring=str;
+		}
+		ptr=ptrbak;
+		if(isstrcode(file[ptr])) { // next dword is pointer to string
 			ptr+=4;
 			uint32_t str=getuint32(file+ptr)+offs;
 			// only accept strings with pointer > strptr
@@ -159,7 +163,9 @@ void encode(char *in) {
 		ptr+=4;
 	}
 
-	uint32_t curptr=earlieststring;
+	memcpy(file+earlieststring,oldfile+earlieststring,fix_earlieststring-earlieststring);
+
+	uint32_t curptr=fix_earlieststring;
 	uint32_t ptr2=8; // pointer minus header size (offs)
 	// go through each line in script and insert text
 	while(fgets(line,MAXL,f)) {

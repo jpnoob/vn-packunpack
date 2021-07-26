@@ -1,22 +1,10 @@
 this tool has been tested and works with the following versions:
 
+bgi version 1.546.7 - compatibility 1.69 (daitoshokan trial)
 bgi version 1.633 - compatibility v1.72 (kanojo step trial)
 bgi version 1.654.3 - compatibility v1.72 (azasumi)
 bgi version 1.658.5 - compatibility v1.72 (pure x connect)
 bgi version 1.659.6 - compatibility v1.72 (hajirabu making lovers promo)
-
-this tool doesn't currently work with:
-
-bgi version 1.546.7 - compatibility 1.69 (daitoshokan trial)
-- misses strings due to dynamic pointer calculation?
--------------------------------------------------------------------------------
-singular cases this tool doesn't work with:
-
-hajirabu promo/data01000.arc/main
-
-same problem that keeps the tool from working with daitoshokan: some kind of
-code that probably calculates string pointers dynamically and my tool misses
-some strings, messing up the encoding
 -------------------------------------------------------------------------------
 file structure in bgi/ethornell engine games TODO
 
