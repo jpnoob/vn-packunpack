@@ -6,7 +6,7 @@ import sys
 import glob
 import codecs
 
-opt_linelen=46
+opt_linelen=47
 opt_spacewarn=True
 
 def linelength(s):
@@ -29,8 +29,8 @@ def wrap(path):
 					print("line "+str(lineno)+" has non-japanese space")
 				m=l[4].split('\\n')
 				for n in m:
-					if linelength(n)>opt_linelen:						
-						print("long line on line "+str(lineno)+" ["+n.rstrip('\n\r')+"]")
+					if linelength(n)>opt_linelen:
+						print("line "+str(lineno)+" is long ["+n.rstrip('\n\r')+"]")
 			lineno+=1
 
 sys.argv=sys.argv[1:]
@@ -44,7 +44,7 @@ if len(sys.argv)<1:
 	print("usage: python mashirowrap.py [-j] [-n<num>] files [more-files]\n")
 	print("example: python mashirowrap.py -n40 *.sc")
 	print("go through all .sc files and warn about lines longer than 40 chars\n")
-	print("-n<num>: max number of chars per line. defaults to 46 if unspecified")
+	print("-n<num>: max number of chars per line. defaults to 47 if unspecified")
 	print("-j: turn off warning about normal space (0x20)")
 	print("files can be specified as filenames or wilcards,")
 	print("and with one or more parameters")
