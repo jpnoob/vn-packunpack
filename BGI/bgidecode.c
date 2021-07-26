@@ -7,6 +7,9 @@
    to avoid decoding and overwriting an existing decoded file by accident
 
    TODO: add support for not extracting non-script text
+
+   v1.0: initial version
+   v1.1: added support for format 0x10 (daitoshokan trial).
 */
 
 #include <stdio.h>
@@ -14,8 +17,10 @@
 #include <stdint.h>
 #include <string.h>
 
+uint32_t opt_format;	// script format, 0x01 (newer games) or 0x10 (older games)
+
 void usage() {
-	fputs("bgidecode v1.0 by me in 2021\n\n",stderr);
+	fputs("bgidecode v1.1 by me in 2021\n\n",stderr);
 	fputs("usage: bgidecode script-file\n\n",stderr);
 	fputs("output is sent to stdout, redirect it yourself\n",stderr);
 	fputs("example: bgidecode 01_prologue > 01_prologue.txt\n",stderr);
@@ -32,6 +37,18 @@ unsigned char file[MAXLEN];
 
 uint32_t getuint32(unsigned char *p) {
 	return p[0]+(p[1]<<8)+(p[2]<<16)+(p[3]<<24);
+}
+
+int isstrcode(uint32_t c) {
+	switch(opt_format) {
+	case 0x01:
+		return c==0x03;
+	case 0x10:
+		// it seems code 0x7f never points to script text
+		return c==0x03;
+	default:
+		return 0;
+	}
 }
 
 void decode(char *in) {
@@ -60,9 +77,9 @@ void decode(char *in) {
 	// format thingy, 0x00000001 in all files i've seen so far
 	// strptr: rough start of strings (underestimate)
 	uint32_t strptr=0;
-	uint32_t format=getuint32(file+offs);
-	if(format==1) strptr=getuint32(file+offs+4);
-	else fprintf(stderr,"unknown format %u\n",format);
+	opt_format=getuint32(file+offs);
+	strptr=getuint32(file+offs+4);
+	if(opt_format!=0x01 && opt_format!=0x10) fprintf(stderr,"unknown format %u, all bets are off\n",opt_format);
 
 	// loop through script and find strings
 	uint32_t ptr=offs+8;
@@ -70,11 +87,11 @@ void decode(char *in) {
 	// pointers (except pointers that are way too low, i.e. below strptr)
 	uint32_t earlieststring=0xffffffff;
 	while(ptr<earlieststring) {
-		if(getuint32(file+ptr)==3) {
+		if(isstrcode(getuint32(file+ptr))) {
 			ptr+=4;
 			uint32_t str=getuint32(file+ptr)+offs;
 			// only accept strings with pointer > strptr
-			if(str>=strptr) {
+			if(str>=strptr && ptr<str) {
 				if(earlieststring>str) earlieststring=str;
 				printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
 			}
