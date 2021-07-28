@@ -14,6 +14,8 @@
          more robust at handling command strings in new games (like main in
          hajirabu promo). as a byproduct, encoding of incomplete scripts is
          supported
+   v1.4: fixed merge bug which was a byproduct of skipping non-script lines
+         in bgidecode. also, dumb version number matching
 */
 
 #include <stdio.h>
@@ -22,7 +24,7 @@
 #include <string.h>
 
 void usage() {
-	fputs("bgiencode v1.1 by me in 2021\n\n",stderr);
+	fputs("bgiencode v1.4 by me in 2021\n\n",stderr);
 	fputs("usage: bgiencode decoded-script-file\n\n",stderr);
 	fputs("kind of assumes that the input file has .txt extension\n",stderr);
 	fputs("uses existing encoded file without extension (whether it was .txt or not)\n",stderr);
@@ -179,8 +181,6 @@ void encode(char *in) {
 		// dumped script files (for format 0x10) don't contain all texts.
 		// go through original binary and add missing texts to storage
 		while(ptr2<binoffs-4) {
-			// BUG, this routine misses "bss.h" and a ton of other strings before
-			// "black" in tos00010 (actually like 0x300 worth of total string length)
 			if(isstrcode(getuint32(oldfile+ptr2+offs))) {
 				ptr2+=4;
 				// ignore pointers to very early in file (within header)
@@ -198,6 +198,17 @@ void encode(char *in) {
 //		printf("process txt %u %s\n",binoffs,line+r);
 		// insert string
 		insertstring(line+r,earlieststring,&curptr,binoffs+offs,offs);
+	}
+	// duplication of while loop inside fgets loop
+	while(ptr2<earlieststring) {
+		if(isstrcode(getuint32(oldfile+ptr2+offs))) {
+			ptr2+=4;
+			// ignore pointers to very early in file (within header)
+			if(getuint32(oldfile+ptr2+offs)<offs) { ptr2+=4; continue; }
+//			printf("process bin %u %s\n",ptr2,oldfile+getuint32(oldfile+ptr2+offs)+offs);
+			insertstring((char *)oldfile+getuint32(oldfile+ptr2+offs)+offs,earlieststring,&curptr,ptr2+offs,offs);
+		}
+		ptr2+=4;
 	}
 	fclose(f);
 	// write new binary file
