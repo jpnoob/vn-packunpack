@@ -14,6 +14,9 @@
          (third number in <x,y,z> in .txt file), string length was thrown
          away by the encoder anyway. only done in -s mode. character line has
          the previous line number (too lazy to fix it now)
+   v1.4a: line numbers are now correct for character names (same as the text
+          line it belongs to). fixed -s for v1.72 (newer games) where it
+          skipped actual text lines
 */
 
 #include <stdio.h>
@@ -26,7 +29,7 @@ uint32_t opt_format;      // script format, 0x01 (newer games) or 0x10 (older ga
 bool opt_nocommand=false; // true: remove commands not part of script
 
 void usage() {
-	fputs("bgidecode v1.4 by me in 2021\n\n",stderr);
+	fputs("bgidecode v1.4a by me in 2021\n\n",stderr);
 	fputs("usage: bgidecode [-s] script-file\n\n",stderr);
 	fputs("-s: skip extraction of non-script text\n",stderr);
 	fputs("output is sent to stdout, redirect it yourself\n",stderr);
@@ -42,10 +45,14 @@ void error(char *s) {
 #define MAXLEN 10000000
 unsigned char file[MAXLEN];
 
-uint32_t name172[]={0,-1,0x3f,2,0xfe,0,1,0,1,0,0,3};
-uint32_t text172[]={0,-1,0x3f,2,0xfe,0,1,0,1,0,0,-1,-1,3};
+uint32_t name172a[]={0,-1,0x3f,2,0xfe,0,1,0,1,0,0,3};
+uint32_t text172a[]={0,-1,0x3f,2,0xfe,0,1,0,1,0,0,-1,-1,3};
+uint32_t name172b[]={0,-1,0x3f,2,0xfe,0,0,0,0,0,0,3};
+uint32_t text172b[]={0,-1,0x3f,2,0xfe,0,0,0,0,0,0,-1,-1,3};
 uint32_t name169[]={0,1,0,1,0,0,3};
 uint32_t text169[]={0,1,0,1,0,0,-1,-1,3};
+
+enum state {NOTHING,NAME,TEXT};
 
 uint32_t getuint32(unsigned char *p) {
 	return p[0]+(p[1]<<8)+(p[2]<<16)+(p[3]<<24);
@@ -99,6 +106,8 @@ void decode(char *in) {
 	// pointers (except pointers that are way too low, i.e. below strptr)
 	uint32_t earlieststring=0xffffffff;
 	int lineno=0;
+	enum state lastthing;
+	enum state thisthing=NOTHING;
 	while(ptr<earlieststring) {
 		if(isstrcode(getuint32(file+ptr))) {
 			ptr+=4;
@@ -111,40 +120,45 @@ void decode(char *in) {
 					// only accept strings used for character and text
 					int i,j;
 					isnametext=false;
+					lastthing=thisthing;
+					thisthing=NOTHING;
 					if(opt_format==1) {
 						// check if current string is name in v1.72
 						for(i=-0x30,j=0;i<0;i+=4,j++) {
 							if(ptr+i<0) break;
-							if(name172[j]<0xffffffffu && getuint32(file+ptr+i)!=name172[j]) break;
+							if(name172a[j]<0xffffffffu && getuint32(file+ptr+i)!=name172a[j] && getuint32(file+ptr+i)!=name172b[j]) break;
 						}
-						if(!i) isnametext=true;
+						if(!i) isnametext=true,thisthing=NAME;
 						// check if current string is text in v1.72
 						for(i=-0x38,j=0;i<0;i+=4,j++) {
 							if(ptr+i<0) break;
-							if(text172[j]<0xffffffffu && getuint32(file+ptr+i)!=text172[j]) break;
+							if(text172a[j]<0xffffffffu && getuint32(file+ptr+i)!=text172a[j] && getuint32(file+ptr+i)!=text172b[j]) break;
 						}
-						if(!i) isnametext=true,lineno++;
+						if(!i) isnametext=true,thisthing=TEXT;
 					} else if(opt_format==0x10) {
 						// check if current string is name in v1.69
 						for(i=-0x1c,j=0;i<0;i+=4,j++) {
 							if(ptr+i<0) break;
 							if(name169[j]<0xffffffffu && getuint32(file+ptr+i)!=name169[j]) break;
 						}
-						if(!i) isnametext=true;
+						if(!i) isnametext=true,thisthing=NAME;
 						// check if current string is text in v1.69
 						for( i=-0x24,j=0;i<0;i+=4,j++) {
 							if(ptr+i<0) break;
 							if(text169[j]<0xffffffffu && getuint32(file+ptr+i)!=text169[j]) break;
 						}
-						if(!i) isnametext=true,lineno++;
+						if(!i) isnametext=true,thisthing=TEXT;
 					}
 				}
 				if(isnametext) {
 					// skip line consisting of just 81 40 (japanese space) that slipped through
 					if(!(opt_nocommand && file[str]==0x81 && file[str+1]==0x40 && !file[str+2])) {
 						// output line number properly in -s mode, otherwise length of string
-						if(opt_nocommand) printf("<%u,%u,%d>%s\n",ptr-offs,str-offs,lineno,file+str);
-						else printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
+						if(opt_nocommand) {
+							if(lastthing==NOTHING) lineno++;
+							else if(lastthing==TEXT) lineno++;
+							printf("<%u,%u,%d>%s\n",ptr-offs,str-offs,lineno,file+str);
+						} else printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
 					}
 				}
 			}
