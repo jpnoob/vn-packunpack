@@ -10,6 +10,10 @@
    v1.1: added support for format 0x10 (daitoshokan trial).
    v1.2: added very ugly support for not extracting non-script text
    v1.3: added proper support for not extracting non-script text
+   v1.4: added script line number in place of the string length parameter
+         (third number in <x,y,z> in .txt file), string length was thrown
+         away by the encoder anyway. only done in -s mode. character line has
+         the previous line number (too lazy to fix it now)
 */
 
 #include <stdio.h>
@@ -22,7 +26,7 @@ uint32_t opt_format;      // script format, 0x01 (newer games) or 0x10 (older ga
 bool opt_nocommand=false; // true: remove commands not part of script
 
 void usage() {
-	fputs("bgidecode v1.3 by me in 2021\n\n",stderr);
+	fputs("bgidecode v1.4 by me in 2021\n\n",stderr);
 	fputs("usage: bgidecode [-s] script-file\n\n",stderr);
 	fputs("-s: skip extraction of non-script text\n",stderr);
 	fputs("output is sent to stdout, redirect it yourself\n",stderr);
@@ -94,6 +98,7 @@ void decode(char *in) {
 	// we don't know the actual end of script, so take minimum across all string
 	// pointers (except pointers that are way too low, i.e. below strptr)
 	uint32_t earlieststring=0xffffffff;
+	int lineno=0;
 	while(ptr<earlieststring) {
 		if(isstrcode(getuint32(file+ptr))) {
 			ptr+=4;
@@ -118,7 +123,7 @@ void decode(char *in) {
 							if(ptr+i<0) break;
 							if(text172[j]<0xffffffffu && getuint32(file+ptr+i)!=text172[j]) break;
 						}
-						if(!i) isnametext=true;
+						if(!i) isnametext=true,lineno++;
 					} else if(opt_format==0x10) {
 						// check if current string is name in v1.69
 						for(i=-0x1c,j=0;i<0;i+=4,j++) {
@@ -131,13 +136,16 @@ void decode(char *in) {
 							if(ptr+i<0) break;
 							if(text169[j]<0xffffffffu && getuint32(file+ptr+i)!=text169[j]) break;
 						}
-						if(!i) isnametext=true;
+						if(!i) isnametext=true,lineno++;
 					}
 				}
 				if(isnametext) {
 					// skip line consisting of just 81 40 (japanese space) that slipped through
-					if(!(opt_nocommand && file[str]==0x81 && file[str+1]==0x40 && !file[str+2]))
-						printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
+					if(!(opt_nocommand && file[str]==0x81 && file[str+1]==0x40 && !file[str+2])) {
+						// output line number properly in -s mode, otherwise length of string
+						if(opt_nocommand) printf("<%u,%u,%d>%s\n",ptr-offs,str-offs,lineno,file+str);
+						else printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
+					}
 				}
 			}
 		}
