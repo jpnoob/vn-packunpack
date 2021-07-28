@@ -6,7 +6,7 @@
    having to explicitly specify (or redirect) output is a safety measure
    to avoid decoding and overwriting an existing decoded file by accident
 
-   TODO: add support for not extracting non-script text
+   TODO: add better support for not extracting non-script text
 
    v1.0: initial version
    v1.1: added support for format 0x10 (daitoshokan trial).
@@ -16,12 +16,15 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
-uint32_t opt_format;	// script format, 0x01 (newer games) or 0x10 (older games)
+uint32_t opt_format;      // script format, 0x01 (newer games) or 0x10 (older games)
+bool opt_nocommand=false; // true: attempt to remove commands not part of script
 
 void usage() {
 	fputs("bgidecode v1.1 by me in 2021\n\n",stderr);
-	fputs("usage: bgidecode script-file\n\n",stderr);
+	fputs("usage: bgidecode [-s] script-file\n\n",stderr);
+	fputs("-s: skip extraction of non-script text\n",stderr);
 	fputs("output is sent to stdout, redirect it yourself\n",stderr);
 	fputs("example: bgidecode 01_prologue > 01_prologue.txt\n",stderr);
 	exit(0);
@@ -34,6 +37,62 @@ void error(char *s) {
 
 #define MAXLEN 10000000
 unsigned char file[MAXLEN];
+
+// pretty arbitraty list of commands taken from hajirabu
+char command[][50]={
+	"_BS5HExit",
+	"_ChangeVolumeOfStreamSE",
+	"_DrawBS",
+	"_DrawScene",
+	"_DrawSPR",
+	"_FadeBGM",
+	"_FadeScene",
+	"_FadeSPR",
+	"_Font",
+	"_MoveRepeatBS",
+	"_PlayBGM",
+	"_PlaySE",
+	"_PlayStreamSE",
+	"_PlayVoice",	
+	"_ScrollBG",
+	"_Wait",
+	"bg",
+	"bgm0",
+	"black",
+	"bustshot4",
+	"call",
+	"clear",
+	"fast_cutin",
+	"font",
+	"jump",
+	"return",
+	"scene",
+	"se0",
+	"sprite7",
+	"sprite8",
+	"streamse2",
+	"voice0",
+	"wait",
+	"white",
+	"BLACK",
+	"CallScriptForFButton",
+	"EnableWindow",
+	"FButtonWait",
+	"LABEL_END",
+	"Scissors_01",
+	"SoundStopAll",
+	"StartShakingOfWindowSx",
+	"Wait",
+	""
+};
+
+// pretty arbitraty list of commands (substring matching) taken from hajirabu
+char contain[][50]={
+	"BURIKOScriptSystem",
+	"Emphasis_",
+	"PrintMessage",
+	""
+};
 
 uint32_t getuint32(unsigned char *p) {
 	return p[0]+(p[1]<<8)+(p[2]<<16)+(p[3]<<24);
@@ -93,7 +152,11 @@ void decode(char *in) {
 			// only accept strings with pointer > strptr
 			if(str>=strptr && ptr<str) {
 				if(earlieststring>str) earlieststring=str;
+				// filter away known commands
+				for(int i=0;command[i][0];i++) if(!strcmp((char *)file+str,command[i])) goto skip;
+				for(int i=0;contain[i][0];i++) if(strstr((char *)file+str,contain[i])) goto skip;
 				printf("<%u,%u,%zd>%s\n",ptr-offs,str-offs,strlen((char *)file+str),file+str);
+			skip:;
 			}
 		}
 		ptr+=4;
@@ -101,6 +164,10 @@ void decode(char *in) {
 }
 
 int main(int argc,char **argv) {
+	if(argc>1 && !strcmp(argv[1],"-s")) {
+		opt_nocommand=true;
+		argc--; argv++;
+	}
 	if(argc==1) usage();
 	decode(argv[1]);
 	return 0;
