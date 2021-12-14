@@ -16,6 +16,7 @@
          supported
    v1.4: fixed merge bug which was a byproduct of skipping non-script lines
          in bgidecode. also, dumb version number matching
+   v1.5: add support for old v1.69 (edelweiss eiden fantasia)
 */
 
 #include <stdio.h>
@@ -24,7 +25,7 @@
 #include <string.h>
 
 void usage() {
-	fputs("bgiencode v1.4 by me in 2021\n\n",stderr);
+	fputs("bgiencode v1.5 by me in 2021\n\n",stderr);
 	fputs("usage: bgiencode decoded-script-file\n\n",stderr);
 	fputs("kind of assumes that the input file has .txt extension\n",stderr);
 	fputs("uses existing encoded file without extension (whether it was .txt or not)\n",stderr);
@@ -132,9 +133,11 @@ void encode(char *in) {
 	}
 	// offs = total header length
 	int offs=0;
-	if(hasheader) offs=0x1c;
-	// skip past framework._bs.function stuff
-	offs+=getuint32(file+offs);
+	if(hasheader) {
+		offs=0x1c;
+		// skip past framework._bs.function stuff
+		offs+=getuint32(file+offs);
+	}
 	// format thingy, 0x00000001 in all files i've seen so far
 	opt_format=getuint32(file+offs);
 	// strptr: address where strings start (a bit too low)
