@@ -1,5 +1,5 @@
 /* if i can't find mask and offset, but have a bunch of pairs of
-   hash and (hash&mask)&offset: use brute force to find mask,offset.
+   hash and (hash&mask)+offset: use brute force to find mask,offset.
    i guess it might need many pairs in some cases (for example if
    mask has many 1-bits) */
 
