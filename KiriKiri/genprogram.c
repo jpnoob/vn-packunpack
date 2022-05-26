@@ -84,7 +84,10 @@ int main() {
 		fclose(f);
 		sprintf(filename,"program%d.mem",i);
 		f=fopen(filename,"rb");
-		if(!f) puts("error");
+		if(!f) {
+			puts("error");
+			return 1;
+		}
 		fread(fil2,1,16384,f);
 		fclose(f);
 		printf("processing dump %d\n",i);
