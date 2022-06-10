@@ -5,32 +5,32 @@
 
 #include <stdio.h>
 
-#define PAIR 6
+#define PAIR 7
 
 unsigned pair[PAIR][2]={
-{0xA92E7B90u, 0x000006BBu},
-{0xA67F9DA6u, 0x000004BFu},
-{0xD59976D5u, 0x000006BFu},
-{0xCC7B55B7u, 0x000004BFu},
-{0x7A2A899Bu, 0x000004BBu},
-{0xB2956026u, 0x000004BFu},
+{0xD853B109,0x167},
+{0x748E7362,0x3a7},
+{0x8125C6A2,0x367},
+{0xF19AF2AA,0x367},
+{0x797647C2,0x3a7},
+{0xDFA7B3CC,0x3ab},
+{0x5373A963,0x1a7},
 };
 
 int main() {
 	int poss=0;
-	int mask2=-1,offs2=-1;
-	for(int mask=0;mask<0x1000;mask++) {
-		for(int offset=0;offset<0x1000;offset++) {
+	for(unsigned mask=0;mask<0x1000;mask++) {
+		for(unsigned offset=0;offset<0x1000;offset++) {
 			for(int i=0;i<PAIR;i++) {
 				unsigned v=(pair[i][0]&mask)+offset;
 				if(v!=pair[i][1]) goto fail;
 			}
-			mask2=mask; offs2=offset;
+			if(poss<20) printf("mask 0x%x offset 0x%x\n",mask,offset);
+			else if(poss==20) puts("(and more)");
 			poss++;
 		fail:;
 		}
 	}
 	printf("%d possible (mask,offset) pairs\n",poss);
-	printf("mask %d offset %d\n",mask2,offs2);
 	return 0;
 }

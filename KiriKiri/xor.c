@@ -42,6 +42,7 @@ int main(int argc,char **argv) {
 	int sum=0;
 	for(int i=0;i<256;i++) sum+=freq[i];
 	if(sum==1) printf("every byte xor'd with %02x\n",file[1][0]);
+	else printf("%d different xor values\n",sum);
 	if(argc==4) {
 		FILE *f=fopen(argv[3],"wb");
 		if(!f) { printf("can't save file\n"); exit(1); }
