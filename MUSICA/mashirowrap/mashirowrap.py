@@ -46,7 +46,7 @@ if len(sys.argv)<1:
 	print("go through all .sc files and warn about lines longer than 40 chars\n")
 	print("-n<num>: max number of chars per line. defaults to 47 if unspecified")
 	print("-j: turn off warning about normal space (0x20)")
-	print("files can be specified as filenames or wilcards,")
+	print("files can be specified as filenames or wildcards,")
 	print("and with one or more parameters")
 else:
 	for x in sys.argv: wrap(x)
