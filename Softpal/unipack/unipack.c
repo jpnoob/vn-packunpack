@@ -116,13 +116,16 @@ int main(int argc,char **argv) {
 		FILE *f=fopen(s,"rb");
 		if(!f) {
 			// file doesn't exist, keep file in old .pac file
+			if(at+getint4(a,diraddr+0x20)>alen2) printf("out of memory, new archive too large\n"),exit(0);
 			memcpy(anew+at,a+getint4(a,diraddr+0x24),getint4(a,diraddr+0x20));
+			writeint4(anew,diraddr+0x24,at);
 			at+=getint4(a,diraddr+0x20);
 		} else {
 			// file exists, read it and add to new .pac file
 			printf("update archive with %s\n",a+diraddr);
 			fclose(f);
 			readfile(s,&curlen,&curfile);
+			if(at+curlen>alen2) printf("out of memory, new archive too large\n"),exit(0);
 			// encrypt
 			if(curfile[0]=='$') encrypt(curfile,curlen);
 			memcpy(anew+at,curfile,curlen);
@@ -133,6 +136,11 @@ int main(int argc,char **argv) {
 		}
 		diraddr+=0x28;
 	}
+	if(at+4>alen2) printf("out of memory, new archive too large\n"),exit(0);
+	anew[at++]='E';
+	anew[at++]='O';
+	anew[at++]='F';
+	anew[at++]=' ';
 	if(strlen(argv[1])>LARGE-5) printf("archive filename too long\n"),exit(0);
 	strcpy(s,argv[1]);
 	strcat(s,".new");

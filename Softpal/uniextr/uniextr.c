@@ -23,7 +23,7 @@ int anewlen;
 
 unsigned getint4(char *b,int i) {
 	unsigned char *a=(unsigned char *)b;
-  return a[i]+(a[i+1]<<8)+(a[i+2]<<16)+(a[i+3]<<24);
+	return a[i]+(a[i+1]<<8)+(a[i+2]<<16)+(a[i+3]<<24);
 }
 
 void writeint4(char *b,int i,unsigned val) {
