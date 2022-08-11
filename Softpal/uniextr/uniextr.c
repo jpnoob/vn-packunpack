@@ -84,9 +84,8 @@ void extract(int argc,char **argv) {
 
 // allow loose hits (not robust)
 int isptr(char *a,int pos,int ptr) {
-	if(pos<4) return 0;
 	// normal match
-	if(getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr) return 1;
+	if(pos>=4 && getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr) return 1;
 	// match the weird name stuff in koi x shin ai kanojo (lines 61643-61646)
 	if(pos>=16 && getint4(a,pos-16)==0x00010009 && getint4(a,pos-12)==0x00000fe6 && getint4(a,pos-8)==0x00010001 && getint4(a,pos-4)==0x40000001 && getint4(a,pos)==ptr && getint4(a,pos+4)==0x0001001f && getint4(a,pos+8)==0x40000001 && getint4(a,pos+12)==0x0001000b && getint4(a,pos+16)==0x00000fe1) return 1;
 	return 0;
@@ -138,10 +137,12 @@ void pack(int argc,char **argv) {
 	*/
 	int at=16;
 	int atscr=4; /* position in script file */
+	int line=0;
 	while(fgets(s,LARGE,f)) {
 		if(s[0]!='<') continue;
 		int lineno,strptr;
 		sscanf(s,"<%d,%d>",&lineno,&strptr);
+		if(lineno!=line) printf("sanity error, expected line %d, found %d\n",line,lineno),exit(0);
 		if(strptr!=at) {
 			// TODO this part is not very robust
 			while(1) {
@@ -154,6 +155,8 @@ void pack(int argc,char **argv) {
 			}
 			/* string pointer has changed, we must change the corresponding pointer in script.src */
 			writeint4(ascr,atscr,at);
+			// advance pointer so we don't accidentally match next old pointer with previous new pointer
+			atscr+=4;
 		}
 		/* copy string to text.dat.new */
 		writeint4(anew,at,lineno);
@@ -164,6 +167,7 @@ void pack(int argc,char **argv) {
 		while(s[sp]!=13 && s[sp]!=10 && s[sp]) anew[at++]=s[sp++];
 		anew[at++]=0;
 		if(at>anewlen) printf("text.dat.new too large\n"),exit(0);
+		line++;
 	}
 	/* write back files */
 	writefile("SCRIPT.SRC.new",script_len,ascr);

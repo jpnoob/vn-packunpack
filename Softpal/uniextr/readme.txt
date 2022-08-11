@@ -34,7 +34,7 @@ games that work with no parameter:
 don't change text that's not part of the script, or things may crash
 (string pointer finding might work even worse in those cases)
 
-the game doesn't do word wrap at all
+the game engine doesn't do word wrap at all
 
 use garbro to unpack .pac files
 use unipack (in the same repo) to repack .pac files
@@ -47,6 +47,20 @@ the extremely lazy way to match:
 1f 00 01 00 ## ## ## ##
 - this results in a bunch of false hits, but catches nearly everything
 - i'd like to improve on this, my current way to handle false hits is dumb
+
+3-way choice (line 151 in leyline 1):
+1F 00 01 00 ## ## ## ## 17 00 01 00 00 00 0F 00
+00 00 00 00 1F 00 01 00 01 00 00 00 17 00 01 00
+01 00 06 00 00 00 00 00
+- only difference between choices in leyline 1 is strptr. i guess the
+  actual choices (and jump points?) are defined afterwards
+- not sure when choice command ends, it could be up to 3 dwords shorter
+
+choices                                                                 v-earliest start                    v-latest start
+F9 13 00 00 17 00 01 00 00 00 0F 00 00 00 00 00 1F 00 01 00 01 00 00 00 17 00 01 00 01 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 CD 00 00 00
+1F 00 01 00 D2 00 00 00 1F 00 01 00 21 0B 00 00 1F 00 01 00 2C 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 04 01 00 00
+1F 00 01 00 E1 00 00 00 1F 00 01 00 22 0B 00 00 1F 00 01 00 45 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 3B 01 00 00
+1F 00 01 00 F0 00 00 00 1F 00 01 00 23 0B 00 00 1F 00 01 00 52 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 end
 
 the tricky strings (a couple of latin alphabet names) at the end of the script
 of koi x shin ai kanojo:
