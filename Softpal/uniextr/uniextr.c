@@ -4,12 +4,14 @@
 
 void usage() {
 	printf("usage:\n");
-	printf("extract text: uniextr e TEXT.DAT > outfile\n");
+	printf("extract text: uniextr e TEXT.DAT [n] > outfile\n");
 	printf("pack text: uniextr p textfile.txt SCRIPT.SRC TEXT.DAT\n");
 	printf("filenames above can be changed. note that uniextr e prints to stdout.\n");
 	printf("the pack text option writes to SCRIPT.SRC.new and TEXT.DAT.new\n");
 	printf("for packing, SCRIPT.SRC and TEXT.DAT must be the original unchanged files\n");
 	printf("(even if they are renamed)\n");
+	printf("for extracting: if [n] where n is integer is specified, reject the first\n");
+	printf("n hits of the first changed line (ugly hack)\n");
 	exit(0);
 }
 
@@ -80,12 +82,23 @@ void extract(int argc,char **argv) {
 	}
 }
 
+// allow loose hits (not robust)
 int isptr(char *a,int pos,int ptr) {
 	if(pos<4) return 0;
-	unsigned x=getint4(a-4,pos);
-	unsigned y=getint4(a,pos);
-	return (x&0xffffffff)==0x1f+0x10000 && y==ptr;
-	return x==ptr;
+	// normal match
+	if(getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr) return 1;
+	// match the weird name stuff in koi x shin ai kanojo (lines 61643-61646)
+	if(pos>=16 && getint4(a,pos-16)==0x00010009 && getint4(a,pos-12)==0x00000fe6 && getint4(a,pos-8)==0x00010001 && getint4(a,pos-4)==0x40000001 && getint4(a,pos)==ptr && getint4(a,pos+4)==0x0001001f && getint4(a,pos+8)==0x40000001 && getint4(a,pos+12)==0x0001000b && getint4(a,pos+16)==0x00000fe1) return 1;
+	return 0;
+}
+
+// this routine is too strict
+int superstrictisptr(char *a,int pos,int ptr) {
+	if(pos<4) return 0;
+	if(getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr && getint4(a,pos+4)==0x0001001f && getint4(a,pos+12)==0x0001001f && getint4(a,pos+20)==0x00010017 && getint4(a,pos+24)==0x00020002 && getint4(a,pos+28)==0) return 1;
+	if(getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr && getint4(a,pos+4)==0x0001001f && getint4(a,pos+12)==0x00010017 && getint4(a,pos+16)==0x00020002 && getint4(a,pos+20)==0) return 1;
+	if(getint4(a,pos-4)==0x0001001f && getint4(a,pos)==ptr && getint4(a,pos+4)==0x00010017 && getint4(a,pos+16)==0x00020002 && getint4(a,pos+8)==0) return 1;
+	return 0;
 }
 
 void pack(int argc,char **argv) {
@@ -93,6 +106,9 @@ void pack(int argc,char **argv) {
 	if(argc<3) printf("infiles (.txt, script.src, text.dat) must be specified\n"),exit(0);
 	FILE *f=fopen(argv[0],"rb");
 	if(!f) printf("file %s couldn't be opened\n",argv[0]),exit(0);
+
+	int reject=0;
+	if(argc>3) reject=strtol(argv[3],0,10);
 
 	unsigned script_len,txt_len;
 	readfile(argv[1],&script_len,&ascr);
@@ -127,10 +143,13 @@ void pack(int argc,char **argv) {
 		int lineno,strptr;
 		sscanf(s,"<%d,%d>",&lineno,&strptr);
 		if(strptr!=at) {
+			// TODO this part is not very robust
 			while(1) {
-				// TODO this part is not very robust
 				if(atscr+8>=script_len) printf("reached end of script file without finding text %d\n",lineno),exit(0);
-				if(isptr(ascr,atscr,strptr)) break;
+				if(isptr(ascr,atscr,strptr)) {
+					if(reject<1) break;
+					reject--;
+				}
 				atscr+=4;
 			}
 			/* string pointer has changed, we must change the corresponding pointer in script.src */
