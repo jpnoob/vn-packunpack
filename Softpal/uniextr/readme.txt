@@ -32,7 +32,7 @@ games that work with no parameter:
 - re:d cherish trial
 
 don't change text that's not part of the script, or things may crash
-(string pointer finding might work even worse in those cases)
+(string pointer finding might work even worse for those strings)
 
 the game engine doesn't do word wrap at all
 
@@ -69,7 +69,9 @@ of koi x shin ai kanojo:
 e1 0f 00 00
 - hopefully this one will never have false hits since it's so specific
 
-i have yet to identify any actual commands
+i have yet to identify any actual commands, though i suspect
+"1f 00 01 00 ## ## ## ##" means "push ## ## ## ## on stack" or "send that value
+to somewhere"
 
 i don't currently have high hopes of matching the early lines of a file
 (before the actual text) because low addresses => low numbers
