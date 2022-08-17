@@ -7,11 +7,11 @@ void usage() {
 	printf("extract text: uniextr e TEXT.DAT > textfile.txt\n");
 	printf("pack text: uniextr p textfile.txt SCRIPT.SRC TEXT.DAT [n]\n");
 	printf("filenames above can be changed. note that uniextr e prints to stdout.\n");
-	printf("the pack text option writes to SCRIPT.SRC.new and TEXT.DAT.new\n");
-	printf("for packing, SCRIPT.SRC and TEXT.DAT must be the original unchanged files\n");
-	printf("(even if they are renamed)\n");
+	printf("the pack text option writes to SCRIPT.SRC.new and TEXT.DAT.new.\n");
+	printf("for packing, SCRIPT.SRC and TEXT.DAT must be the sames one as we originally\n");
+	printf("extracted the .txt file from (even if they are renamed.)\n");
 	printf("for packing: if [n] where n is integer is specified, reject the first n hits\n");
-	printf("in SCRIPT.SRC of the string pointer to the first changed line (ugly hack)\n");
+	printf("in SCRIPT.SRC of the string pointer to the first changed line (ugly hack).\n");
 	exit(0);
 }
 

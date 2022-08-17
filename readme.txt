@@ -14,8 +14,11 @@ KiriKiri	KiriKiri
 MUSICA		Musica
 		mashirowrap: check if lines in script are long and need linebreak
 		spaceconv: convert 0x20 spaces in script to 0x81 0x40 spaces
+Pajamas		Pajamas Adventure System
+		nanaextr: extract/insert script files
 Softpal		Softpal ADV System
 		uniextr: extract/insert script files
 		unipack: pack .pac files
+		flywrap: check if lines in script are long and need linebreak
 Willadv		adv/will v1
 		pack .arc files (filename 12 chars, 1 byte per char)

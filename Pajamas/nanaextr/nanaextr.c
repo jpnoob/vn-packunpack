@@ -82,21 +82,6 @@ int istextline(char *a,int pos) {
 	return getint4(a,pos)==0x80000307 && (getint4(a,pos+20)==0x00030000 || getint4(a,pos+20)==0x00020000 || getint4(a,pos+20)==0x00000000) && (getint4(a,pos+24)==0x00000001 || getint4(a,pos+24)==0x00000002);
 }
 
-int ischapter(char *a,int pos) {
-	return getint4(a,pos)==0x02000103 && getint4(a,pos+4)==0x30000000 && getint4(a,pos+8)==0x00000001 && getint4(a,pos+12)==0x02000103 && getint4(a,pos+20)==0x30000000 && getint4(a,pos+24)==0x01000d02;
-}
-
-int isunknownthingwithpointers1(char *a,int pos) {
-	// routine is probably wrong, i've deactivated for now
-	return 0;
-	// first dword of these patterns look too weird, maybe they're part of the previous command
-	if(getint4(a,pos)==0x00051c08 && getint4(a,pos+4)==0x01010203) return 1;
-	if(getint4(a,pos)==0x01010101 && getint4(a,pos+4)==0x01010203) return 1;
-	if(getint4(a,pos)==0x01000001 && getint4(a,pos+4)==0x01000d02) return 1;
-	if(getint4(a,pos)==0x30000000 && getint4(a,pos+4)==0x01000d02) return 1;
-	return 0;
-}
-
 // this matches chapter text (and more unknown text)
 int isunknownthingwithpointers2(char *a,int pos) {
 	// first dword of these patterns look too weird, maybe they're part of the previous command
@@ -180,17 +165,6 @@ void pack(int argc,char **argv) {
 			if(oldptr) updateptr(oldptr,ascr,atscr+8,"speaker name");
 			// text line (mandatory)
 			updateptr(getint4(ascr,atscr+12),ascr,atscr+12,"text line");
-/*
-		} else if(ischapter(ascr,atscr)) {
-			// chapter name
-			updateptr(getint4(ascr,atscr+28),ascr,atscr+28,"chapter name");
-*/
-		} else if(isunknownthingwithpointers1(ascr,atscr)) {
-			// pointer to unknown something (mandatory)
-			updateptr(getint4(ascr,atscr+8),ascr,atscr+8,"unknown1");
-			// pointer to another unknown something (mandatory)
-			unsigned oldptr=getint4(ascr,atscr+20);
-			if(oldptr && oldptr!=0x01000302 && oldptr!=0x02000103) updateptr(oldptr,ascr,atscr+20,"unknown2");
 		} else if(isunknownthingwithpointers2(ascr,atscr)) {
 			// pointer to unknown something (mandatory)
 			// also matches chapter name

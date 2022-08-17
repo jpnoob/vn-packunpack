@@ -37,7 +37,9 @@ chapter name
 
 unknown instruction with string pointer
 - this also matches chapter name
+- dword 1: strptr
 02 0D 00 01 04 67 01 00
 
 unknown instruction with string pointer
+- dword 1: strptr
 03 02 01 01 2A 35 00 00

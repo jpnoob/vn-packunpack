@@ -1,3 +1,13 @@
+uniextr:    extract and re-insert text from TEXT.DAT from games using softpal
+            adv system engine. this version has unreliable string pointer
+            replacing
+uniextr2:   same as uniextr, but with reliable string pointer replacing. might
+            not work with games that aren't explicitly supported
+unisanity:  check if script.src and text.dat are parsable and reports all
+            text lines that can't be found
+-------------------------------------------------------------------------------
+uniextr
+
 extract and re-insert text from TEXT.DAT from games using softpal adv system engine
 
 can add lines with comments in the resulting .txt file, lines not starting
@@ -12,13 +22,13 @@ still crashes, increase the number in the parameter, then repeat until it
 works. if no values work (e.g. the game crashes later than right after the
 first changed line), i really need to improve the pointer finding routine
 
-working values for some games:
+games that need extra parameter to avoid crash (uniextr only)
 - flyable heart: 1
 - kimi no nagori: 1
 
-games that work with no parameter:
+games that don't need extra parameter (uniextr only)
+- akatsuki yureru koi akari trial
 - a clockwork leyline 1
-- akatsuki yureru koi akari
 - flyable candyheart
 - flyable heart trial
 - kizuna kirameku koi iroha
@@ -30,49 +40,58 @@ games that work with no parameter:
 - majo koi nikki trial 1
 - natsuiro kokoro log
 - re:d cherish trial
+-------------------------------------------------------------------------------
+uniextr2
 
-don't change text that's not part of the script, or things may crash
-(string pointer finding might work even worse for those strings)
+like uniextr, this tool also rebuilds the entire text.dat file. so every line
+after the first line in the script need to be matched correctly in script.src,
+otherwise script insertion will most likely be wrong. if this tool doesn't
+work, try arcusmaximus/vntranslationtools
+
+this tool will warn if we try to change a non-script line that isn't matched
+with script.src
+
+games that should work with uniextr2
+* all strings occurring later than the first script line are matched
+* only verified with unisanity, haven't tried script insertion on all games
+- akatsuki yureru koi akari trial (0-867 left, all are non-script)
+- a clockwork leyline 1 (0-51 left, all are non-script)
+- a clockwork leyline 1 (english)
+- a clockwork leyline 2 (english)
+- anata ni koi suru ren'ai recette
+- anata ni koi suru ren'ai recette trial
+- flyable candyheart (0-9 left, all are non-script)
+- flyable heart (0-37 left, all are non-script)
+- flyable heart trial (0-23 left, all are non-script)
+- kimi no nagori (0, 2-6 left, all are non-script)
+- kimi to boku to no kishi no hibi -rakuen no chevalier- trial
+- kizuna kirameku koi iroha (0-920 left, all are non-script)
+- kizuna kirameku koi iroha trial (0-852 left, all are non-script)
+- kizuna kirameku koi iroha -tsubaki renka- (0-1028 left, all are non-script)
+- kizuna kirameku koi iroha -tsubaki renka- trial (0-852 left, all are non-script)
+- koi saku miyako ni ai no yakusoku o ~annaffiare~ (0-330 left, all are non-script)
+- koi saku miyako ni ai no yakusoku o ~annaffiare~ trial (0-301 left, all are non-script)
+- koi suru kokoro to mahou no kotoba (0-1042 left, all are non-script)
+- koi suru kokoro to mahou no kotoba trial (0-874 left, all are non-script)
+- koi x shin ai kanojo (0-387 left, all are non-script)
+- koi x shin ai kanojo trial (0-366 left, all are non-script)
+- majo koi nikki trial 1 (0-335 left, all are non-script)
+- natsuiro kokoro log (0-416 left, all are non-script)
+- natsuiro kokoro log -happy summer-
+- natsuiro kokoro log -happy summer- log
+- re:d cherish trial (0-942 left, all are non-script)
+- shikotama slave ~aruji de shimai na tenshi to akuma~ trial (0-196 left, all are non-script i think)
+- shiraha kirameku koi shirabe
+- shiraha kirameku koi shirabe trial
+- the witch's love diary (english)
+- unity marriage trial
+-------------------------------------------------------------------------------
+common stuff for both tools
+
+don't change text that's not part of the script, or things may crash. string
+pointer finding might work even worse for those strings
 
 the game engine doesn't do word wrap at all
 
 use garbro to unpack .pac files
 use unipack (in the same repo) to repack .pac files
--------------------------------------------------------------------------------
-ugly details about the bytecode language where string pointers occur
-
-in the byte sequences below, ## ## ## ## is the string pointer
-
-the extremely lazy way to match:
-1f 00 01 00 ## ## ## ##
-- this results in a bunch of false hits, but catches nearly everything
-- i'd like to improve on this, my current way to handle false hits is dumb
-
-3-way choice (line 151 in leyline 1):
-1F 00 01 00 ## ## ## ## 17 00 01 00 00 00 0F 00
-00 00 00 00 1F 00 01 00 01 00 00 00 17 00 01 00
-01 00 06 00 00 00 00 00
-- only difference between choices in leyline 1 is strptr. i guess the
-  actual choices (and jump points?) are defined afterwards
-- not sure when choice command ends, it could be up to 3 dwords shorter
-
-choices                                                                 v-earliest start                    v-latest start
-F9 13 00 00 17 00 01 00 00 00 0F 00 00 00 00 00 1F 00 01 00 01 00 00 00 17 00 01 00 01 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 CD 00 00 00
-1F 00 01 00 D2 00 00 00 1F 00 01 00 21 0B 00 00 1F 00 01 00 2C 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 04 01 00 00
-1F 00 01 00 E1 00 00 00 1F 00 01 00 22 0B 00 00 1F 00 01 00 45 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 1F 00 01 00 00 00 00 00 1F 00 01 00 FF 00 00 00 1F 00 01 00 3B 01 00 00
-1F 00 01 00 F0 00 00 00 1F 00 01 00 23 0B 00 00 1F 00 01 00 52 14 00 00 17 00 01 00 02 00 06 00 00 00 00 00 end
-
-the tricky strings (a couple of latin alphabet names) at the end of the script
-of koi x shin ai kanojo:
-09 00 01 00 e6 0f 00 00 01 00 01 00 01 00 00 40
-## ## ## ## 1f 00 01 00 01 00 00 40 0b 00 01 00
-e1 0f 00 00
-- hopefully this one will never have false hits since it's so specific
-
-i have yet to identify any actual commands, though i suspect
-"1f 00 01 00 ## ## ## ##" means "push ## ## ## ## on stack" or "send that value
-to somewhere"
-
-i don't currently have high hopes of matching the early lines of a file
-(before the actual text) because low addresses => low numbers
-=> more search hits => more false hits
